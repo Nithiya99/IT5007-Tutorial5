@@ -1,5 +1,6 @@
 const graphql = require("graphql");
 const _ = require("lodash");
+const Customer = require("../models/customer");
 
 const {
   GraphQLObjectType,
@@ -7,6 +8,7 @@ const {
   GraphQLSchema,
   GraphQLID,
   GraphQLList,
+  GraphQLNonNull,
 } = graphql;
 
 const CustomerType = new GraphQLObjectType({
@@ -27,13 +29,35 @@ const RootQuery = new GraphQLObjectType({
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
         // code to get data from db / other source
-        return _.find(books, { id: args.id });
+        return Customer.findById(parent.customerId);
       },
     },
     customers: {
       type: new GraphQLList(CustomerType),
       resolve(parent, args) {
-        return customers;
+        return Customer.find({});
+      },
+    },
+  },
+});
+
+const Mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addCustomer: {
+      type: CustomerType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        hp: { type: new GraphQLNonNull(GraphQLString) },
+        timestamp: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve(parent, args) {
+        let customer = new Customer({
+          name: args.name,
+          hp: args.hp,
+          timestamp: args.timestamp,
+        });
+        return book.save();
       },
     },
   },
@@ -41,4 +65,5 @@ const RootQuery = new GraphQLObjectType({
 
 module.exports = new GraphQLSchema({
   query: RootQuery,
+  mutation: Mutation,
 });
